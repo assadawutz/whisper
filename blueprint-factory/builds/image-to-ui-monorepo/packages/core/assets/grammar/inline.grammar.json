@@ -1,0 +1,9 @@
+{
+  "minChars": 2,
+  "maxChars": 3,
+  "confirmKey": "Tab",
+  "rules": {
+    "2": "insert-below",
+    "3": "append"
+  }
+}

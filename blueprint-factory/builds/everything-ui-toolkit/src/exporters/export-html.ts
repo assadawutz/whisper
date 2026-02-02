@@ -1,0 +1,2 @@
+import { emitClass } from "../core/emit"; import { UINode } from "../core/types";
+export function exportHTML(n: UINode): string { const c = emitClass(n); const ch = n.children?.map(exportHTML).join("") ?? ""; return `<div class="${c}">${ch}</div>`; }

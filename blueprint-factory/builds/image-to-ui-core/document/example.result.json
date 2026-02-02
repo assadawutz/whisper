@@ -1,0 +1,59 @@
+{
+  "version": "0.1.0",
+  "root": {
+    "id": "root",
+    "type": "Document",
+    "children": [
+      {
+        "id": "hero-1",
+        "type": "Section",
+        "name": "hero",
+        "intent": "centered-stack",
+        "children": [
+          {
+            "type": "H1",
+            "content": "Hero title"
+          },
+          {
+            "type": "Paragraph",
+            "content": "Subtitle text"
+          },
+          {
+            "type": "Button",
+            "content": "Get started"
+          }
+        ]
+      },
+      {
+        "id": "news-1",
+        "type": "Section",
+        "name": "news",
+        "intent": "card-list-3",
+        "children": [
+          {
+            "type": "H2",
+            "content": "Latest News"
+          },
+          {
+            "type": "CardList",
+            "count": 3,
+            "items": [
+              {
+                "type": "Card",
+                "title": "News A"
+              },
+              {
+                "type": "Card",
+                "title": "News B"
+              },
+              {
+                "type": "Card",
+                "title": "News C"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

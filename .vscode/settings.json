@@ -1,0 +1,5 @@
+{
+  "javascript.format.insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces": true,
+  "typescript.format.insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces": true,
+  "geminicodeassist.project": "gen-lang-client-0538382351"
+}

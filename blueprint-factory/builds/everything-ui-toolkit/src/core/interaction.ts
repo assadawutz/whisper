@@ -1,0 +1,2 @@
+const BANNED = ["hover:scale-", "hover:-translate-", "group-hover:scale-"];
+export function guard(cls: string) { BANNED.forEach(b => { if (cls.includes(b)) throw new Error("Banned: " + b); }); return cls; }
