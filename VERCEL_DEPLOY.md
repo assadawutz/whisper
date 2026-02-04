@@ -6,6 +6,8 @@
 npm install
 ```
 
+Node version is pinned in `.nvmrc`/`package.json` (Node 18) to keep Vercel builds consistent.
+
 2) Link the repo to your Vercel project (one-time):
 
 ```
@@ -24,6 +26,12 @@ npx vercel link
 
 ```
 npm run vercel:deploy
+```
+
+5) Create a Preview deployment for PRs or quick QA:
+
+```
+npm run vercel:preview
 ```
 
 Once linked, pushes to the connected branch will trigger deployments automatically.
