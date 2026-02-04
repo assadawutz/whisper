@@ -159,7 +159,7 @@ export default function PreviewPage({ params }: { params: { id: string } }) {
         </div>
 
         {/* RIGHT: JSON BUFFER */}
-        <div className="w-[400px] bg-[#050505] border-l border-white/10 flex flex-col animate-slideLeft">
+        <div className="w-full max-w-xl lg:max-w-none lg:w-[400px] bg-[#050505] border-l border-white/10 flex flex-col animate-slideLeft">
           <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/5">
             <span className="text-gray-400 font-black uppercase tracking-widest text-[9px]">
               JSON_Object_Buffer
@@ -216,9 +216,9 @@ export default function PreviewPage({ params }: { params: { id: string } }) {
         </div>
       </nav>
 
-      <main className="flex-1 bg-[#fcfdfe] p-10 overflow-auto flex gap-10">
+      <main className="flex-1 bg-[#fcfdfe] p-4 sm:p-6 lg:p-10 overflow-auto flex flex-col lg:flex-row gap-6 lg:gap-10">
         {/* LEFT: SOURCE REFERENCE (Miniaturized) */}
-        <div className="w-[320px] shrink-0 flex flex-col gap-6 animate-slideRight">
+        <div className="w-full max-w-2xl lg:max-w-none lg:w-[320px] shrink-0 flex flex-col gap-6 animate-slideRight mx-auto lg:mx-0">
           <div className="space-y-4">
             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -260,7 +260,7 @@ export default function PreviewPage({ params }: { params: { id: string } }) {
         </div>
 
         {/* RIGHT: LIVE INTERACTIVE CANVAS (The Actual Result) */}
-        <div className="flex-1 flex flex-col gap-4">
+        <div className="w-full lg:flex-1 flex flex-col gap-4 max-w-5xl mx-auto lg:mx-0">
           <div className="flex justify-between items-center px-4">
             <div className="flex items-center gap-3">
               <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-brand-primary">
@@ -283,7 +283,7 @@ export default function PreviewPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          <div className="flex-1 bg-white shadow-[0_40px_100px_rgba(0,0,0,0.08)] rounded-[2rem] overflow-hidden border border-gray-100 relative group min-h-[80vh]">
+          <div className="flex-1 bg-white shadow-[0_40px_100px_rgba(0,0,0,0.08)] rounded-[2rem] overflow-hidden border border-gray-100 relative group min-h-[60vh] lg:min-h-[80vh]">
             {/* This is where the magic happens: rendering the tree as it grows */}
             {tree && <BlueprintRenderer tree={tree} />}
 
