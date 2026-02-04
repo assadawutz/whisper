@@ -6,6 +6,8 @@
 npm install
 ```
 
+This repo pins Node.js 20.x in `package.json`. Make sure your local version matches so builds align with Vercel.
+
 2) Link the repo to your Vercel project (one-time):
 
 ```
