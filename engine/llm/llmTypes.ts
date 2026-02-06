@@ -1,6 +1,13 @@
+export type ContentPart =
+  | { type: "text"; text: string }
+  | {
+      type: "image_url";
+      image_url: { url: string; detail?: "auto" | "low" | "high" };
+    };
+
 export type LlmMessage = {
   role: "system" | "user" | "assistant" | "function" | "tool";
-  content: string;
+  content: string | ContentPart[];
   name?: string;
   functionCall?: { name: string; arguments: string };
   toolCalls?: Array<{

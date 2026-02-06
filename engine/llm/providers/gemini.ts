@@ -16,10 +16,33 @@ export async function callGemini(
   // Convert messages to Gemini format
   const contents = messages
     .filter((m) => m.role !== "system") // Gemini handles system prompts differently
-    .map((m) => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: m.content }],
-    }));
+    // Convert messages to Gemini format
+    .map((m) => {
+      let parts: any[] = [];
+      if (typeof m.content === "string") {
+        parts = [{ text: m.content }];
+      } else {
+        parts = m.content.map((part) => {
+          if (part.type === "text") {
+            return { text: part.text };
+          } else if (part.type === "image_url") {
+            // Assume base64 data url for now: "data:image/png;base64,..."
+            const [mime, data] = part.image_url.url.split(";base64,");
+            return {
+              inlineData: {
+                mimeType: mime.replace("data:", ""),
+                data: data,
+              },
+            };
+          }
+          return { text: "" };
+        });
+      }
+      return {
+        role: m.role === "assistant" ? "model" : "user",
+        parts,
+      };
+    });
 
   // Include system instruction if present
   const systemMessage = messages.find((m) => m.role === "system");
