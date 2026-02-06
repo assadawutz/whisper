@@ -261,7 +261,7 @@ export default function EngineValidationPage() {
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-500 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-linear-to-r from-emerald-400 to-cyan-500 bg-clip-text text-transparent">
               Engine Diagnostics
             </h1>
             <p className="text-gray-400">
@@ -284,7 +284,7 @@ export default function EngineValidationPage() {
         {/* Progress Bar */}
         <div className="h-2 bg-gray-900 rounded-full overflow-hidden border border-white/5">
           <div
-            className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-300 ease-out"
+            className="h-full bg-linear-to-r from-emerald-500 to-cyan-500 transition-all duration-300 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -292,7 +292,7 @@ export default function EngineValidationPage() {
         {/* Results Grid */}
         <div className="grid grid-cols-1 gap-4">
           {results.length === 0 ? (
-            <div className="text-center py-20 border border-dashed border-white/10 rounded-2xl bg-white/[0.02]">
+            <div className="text-center py-20 border border-dashed border-white/10 rounded-2xl bg-white/2">
               <div className="text-6xl mb-4 opacity-30">🛡️</div>
               <p className="text-gray-500">Ready to verify system integrity</p>
             </div>

@@ -26,9 +26,9 @@ export default function StarterExample() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-gray-900 to-black p-8">
+    <div className="min-h-screen bg-linear-to-r from-gray-900 to-black p-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-8">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-8">
           Whisper Engine Starter
         </h1>
 
