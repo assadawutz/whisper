@@ -1,4 +1,19 @@
 {
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/agents/page": "app/agents/page.js",
+  "/config/page": "app/config/page.js",
+  "/engine/page": "app/engine/page.js",
+  "/engine/test/page": "app/engine/test/page.js",
+  "/examples/page": "app/examples/page.js",
+  "/examples/synthesis/page": "app/examples/synthesis/page.js",
+  "/generated-test/page": "app/generated-test/page.js",
+  "/memory/page": "app/memory/page.js",
   "/page": "app/page.js",
-  "/preview/[id]/page": "app/preview/[id]/page.js"
+  "/preview/[id]/page": "app/preview/[id]/page.js",
+  "/realtime-scan/page": "app/realtime-scan/page.js",
+  "/registry/page": "app/registry/page.js",
+  "/studio/page": "app/studio/page.js",
+  "/studio/preview/page": "app/studio/preview/page.js",
+  "/synthesis/page": "app/synthesis/page.js"
 }

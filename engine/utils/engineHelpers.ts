@@ -254,11 +254,14 @@ export async function switchProvider(
  */
 export function showToast(
   message: string,
-  kind: "info" | "error" = "info",
+  kind: "info" | "error" | "success" | "fail" = "info",
 ): void {
   engineService.publishEvent({
     type: "ui:toast",
-    payload: { kind, text: message },
+    payload: {
+      kind: kind === "success" || kind === "fail" ? "info" : kind,
+      text: message,
+    },
   });
 }
 

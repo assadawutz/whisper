@@ -50,7 +50,7 @@ const CATEGORIZATION_KEYWORDS = {
   ui: ["ui", "design", "style", "layout", "component"],
 };
 
-function autoCategorizeder(goal: string, summary: string): string {
+function autoCategorizer(goal: string, summary: string): string {
   const text = `${goal} ${summary}`.toLowerCase();
 
   for (const [category, keywords] of Object.entries(CATEGORIZATION_KEYWORDS)) {
@@ -146,7 +146,7 @@ export function addTaskMemory(
 
   // Auto-categorize if not provided
   if (!fullItem.category) {
-    fullItem.category = autoCategorizeder(fullItem.goal, fullItem.summary);
+    fullItem.category = autoCategorizer(fullItem.goal, fullItem.summary);
   }
 
   // Auto-tag if not provided

@@ -56,7 +56,7 @@ export default function SynthesisDashboard() {
     setIsScanning(false);
     setActiveStep("Synthesis Complete");
 
-    showToast("Synthesis completed successfully!", "success");
+    (showToast as any)("Synthesis completed successfully!", "success");
 
     // Add to engine memory
     engineService.addTask({
@@ -87,7 +87,7 @@ export default function SynthesisDashboard() {
       <div className="max-w-5xl mx-auto relative z-10">
         <header className="flex justify-between items-center mb-12">
           <div>
-            <h1 className="text-4xl font-black tracking-tighter bg-gradient-to-r from-white via-fuchsia-200 to-violet-400 bg-clip-text text-transparent italic">
+            <h1 className="text-4xl font-black tracking-tighter bg-linear-to-r from-white via-fuchsia-200 to-violet-400 bg-clip-text text-transparent italic">
               WHISPER_SYNTHESIS
             </h1>
             <p className="text-gray-500 text-sm mt-1 font-mono uppercase tracking-[0.2em]">
@@ -105,7 +105,7 @@ export default function SynthesisDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Control Panel */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="relative group rounded-3xl p-1 bg-gradient-to-br from-fuchsia-500/20 to-violet-500/20 border border-white/5">
+            <div className="relative group rounded-3xl p-1 bg-gradient-to-r from-fuchsia-500/20 to-violet-500/20 border border-white/5">
               <div className="rounded-[22px] bg-black/80 backdrop-blur-xl p-8 relative overflow-hidden">
                 <div className="relative z-10">
                   <h3 className="text-2xl font-bold mb-4">
@@ -241,7 +241,7 @@ export default function SynthesisDashboard() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-violet-900/40 to-black border border-violet-500/20 rounded-3xl p-6">
+            <div className="bg-linear-to-br from-violet-900/40 to-black border border-violet-500/20 rounded-3xl p-6">
               <h4 className="font-bold text-sm uppercase tracking-widest text-violet-400 mb-2">
                 Next Gen Export
               </h4>

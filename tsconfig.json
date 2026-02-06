@@ -1,14 +1,11 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "target": "es2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    "downlevelIteration": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -23,9 +20,7 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     }
   },
   "include": [
@@ -34,9 +29,24 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    ".next/dev/dev/types/**/*.ts"
+    ".next/dev/dev/types/**/*.ts",
+    "engine/**/*"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "blueprint-factory",
+    "image-to-ui-monorepo",
+    "exporters",
+    "gate",
+    "hints",
+    "lock",
+    "module",
+    "nodes",
+    "overlay",
+    "pipeline",
+    "scan",
+    "snapshots",
+    "uploads",
+    "verify"
   ]
 }

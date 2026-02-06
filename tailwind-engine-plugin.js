@@ -106,7 +106,7 @@ module.exports = plugin(
         },
       },
       ".engine-panel": {
-        "@apply rounded-3xl border-2 border-white/10 bg-gradient-to-br from-gray-900 to-black p-8 shadow-2xl":
+        "@apply rounded-3xl border-2 border-white/10 bg-gradient-to-r from-gray-900 to-black p-8 shadow-2xl":
           {},
       },
       ".code-block": {

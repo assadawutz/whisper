@@ -44,7 +44,7 @@ export default function EngineDashboard() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#0a0a0a] text-white">
         <div className="flex flex-col items-center animate-pulse">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 blur-xl mb-4 opacity-50"></div>
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 blur-xl mb-4 opacity-50"></div>
           <div className="text-xl font-light tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">
             INITIALIZING
           </div>
@@ -122,7 +122,7 @@ function Sidebar({ activeTab, setActiveTab, version }: any) {
   return (
     <div className="w-64 border-r border-white/5 bg-black/20 backdrop-blur-xl flex flex-col p-6">
       <div className="flex items-center gap-3 mb-10 px-2">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center text-xl shadow-lg shadow-violet-500/20">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 flex items-center justify-center text-xl shadow-lg shadow-violet-500/20">
           W
         </div>
         <div>
@@ -150,7 +150,7 @@ function Sidebar({ activeTab, setActiveTab, version }: any) {
         ))}
       </div>
 
-      <div className="mt-auto px-4 py-4 rounded-xl bg-gradient-to-br from-gray-900 to-black border border-white/5">
+      <div className="mt-auto px-4 py-4 rounded-xl bg-gradient-to-r from-gray-900 to-black border border-white/5">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
           <span className="text-xs text-emerald-500 font-medium">
@@ -171,7 +171,7 @@ function DashboardView({ status, stats }: any) {
   return (
     <div className="animate-fade-in space-y-8">
       {/* Upgrade Hero */}
-      <div className="relative rounded-3xl overflow-hidden p-8 border border-white/10 bg-gradient-to-br from-violet-900/20 to-fuchsia-900/20 backdrop-blur-sm">
+      <div className="relative rounded-3xl overflow-hidden p-8 border border-white/10 bg-gradient-to-r from-violet-900/20 to-fuchsia-900/20 backdrop-blur-sm">
         <div className="relative z-10">
           <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
             Welcome to Whisper Engine
@@ -306,10 +306,23 @@ function MemoryView({ stats }: any) {
         Deep dive into your task memory, search through past interactions, and
         manage knowledge context.
       </p>
-      <div className="flex gap-4 text-sm font-mono text-gray-500">
+      <div className="flex gap-4 text-sm font-mono text-gray-500 mb-8">
         <div>Total Items: {stats?.memory?.total || 0}</div>
-        <div>Vectors: {stats?.memory?.vectorCount || 0}</div>
+        <div>
+          Success Rate:{" "}
+          {stats?.memory?.successRate
+            ? (stats.memory.successRate * 100).toFixed(1)
+            : 0}
+          %
+        </div>
       </div>
+
+      <a
+        href="/memory"
+        className="px-8 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-medium transition-all hover:scale-105 shadow-lg shadow-violet-900/20"
+      >
+        Open Full Memory Console
+      </a>
     </div>
   );
 }
@@ -367,7 +380,7 @@ function StatCard({ title, value, label, icon, color }: any) {
     <div className="bg-gray-900/40 backdrop-blur-sm border border-white/5 p-6 rounded-2xl hover:bg-gray-900/60 transition-colors group">
       <div className="flex justify-between items-start mb-4">
         <div
-          className={`p-3 rounded-lg bg-gradient-to-br ${gradients[color]} bg-opacity-10`}
+          className={`p-3 rounded-lg bg-gradient-to-r ${gradients[color]} bg-opacity-10`}
         >
           <span className="text-2xl">{icon}</span>
         </div>
