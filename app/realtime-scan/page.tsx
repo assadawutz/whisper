@@ -182,42 +182,57 @@ export default function RealtimeScanPage() {
     [edgeMap, imageSize],
   );
 
+  useEffect(() => {
+    // Clear once loop restart
+  }, [scanPath]);
+
   const drawFrame = useCallback(() => {
     const overlay = overlayRef.current;
-    const diff = diffRef.current;
     const img = imageRef.current;
-    if (!overlay || !diff || !img) return;
+    if (!overlay || !img) return;
 
     const ctx = overlay.getContext("2d");
-    const diffCtx = diff.getContext("2d");
-    if (!ctx || !diffCtx) return;
+    if (!ctx) return;
 
+    // Clear previous frame
     ctx.clearRect(0, 0, overlay.width, overlay.height);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "#00E5FF";
-    ctx.beginPath();
 
-    const endIndex = Math.min(scanIndex, scanPath.length - 1);
-    for (let i = 0; i <= endIndex; i += 1) {
+    const point = scanPath[scanIndex];
+    if (!point) return;
+
+    // 1. Draw Scanner Reticle (Crosshair)
+    const size = 30;
+    ctx.strokeStyle = "#00E5FF";
+    ctx.lineWidth = 2;
+    ctx.shadowColor = "#00E5FF";
+    ctx.shadowBlur = 10;
+
+    ctx.beginPath();
+    ctx.moveTo(point.x - size, point.y);
+    ctx.lineTo(point.x + size, point.y);
+    ctx.moveTo(point.x, point.y - size);
+    ctx.lineTo(point.x, point.y + size);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, size / 1.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 2. Draw Fading Tail
+    const tailLen = 30;
+    const start = Math.max(0, scanIndex - tailLen);
+
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+    ctx.lineWidth = 1;
+    ctx.shadowBlur = 0;
+
+    for (let i = start; i < scanIndex; i++) {
       const p = scanPath[i];
-      if (i === 0) ctx.moveTo(p.x, p.y);
+      if (i === start) ctx.moveTo(p.x, p.y);
       else ctx.lineTo(p.x, p.y);
     }
     ctx.stroke();
-
-    if (scanPath[endIndex]) {
-      const p = scanPath[endIndex];
-      ctx.fillStyle = "#FF3B30";
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    diffCtx.clearRect(0, 0, diff.width, diff.height);
-    diffCtx.drawImage(img, 0, 0, diff.width, diff.height);
-    diffCtx.globalCompositeOperation = "difference";
-    diffCtx.drawImage(overlay, 0, 0);
-    diffCtx.globalCompositeOperation = "source-over";
   }, [scanIndex, scanPath]);
 
   useEffect(() => {
@@ -405,7 +420,7 @@ export default function RealtimeScanPage() {
 
             <div className="relative w-full h-full flex items-center justify-center p-8">
               {fileUrl ? (
-                <div className="relative shadow-2xl shadow-cyan-900/10">
+                <div className="relative inline-flex flex-col shadow-2xl shadow-cyan-900/10">
                   {/* Base Image */}
                   <img
                     ref={imageRef}
