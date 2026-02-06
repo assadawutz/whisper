@@ -1,18 +1,13 @@
 export type ScanPath = "serpentine" | "raster";
 
-export interface Rect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
+export interface Rect { x: number; y: number; w: number; h: number; }
 
 export interface UINode {
   id: string;
-  rect: Rect;
-  depth: number;
+  rect: Rect;                 // pixel space 1:1
+  depth: number;              // containment depth
   parentId?: string;
-  role: "container" | "leaf";
+  role: "container" | "leaf"; // box-only level
   layoutHint?: {
     flow: "flex-row" | "flex-col" | "grid" | "absolute" | "none";
     gapPx?: number;
@@ -36,9 +31,9 @@ export interface DiffMetrics {
 
 export interface BlueprintSession {
   id: string;
-  image: { name: string; width: number; height: number; dataUrl: string; hash: string };
-  locks: { pixelSpace: "1:1"; noNormalize: true; noSemanticOverride: true };
-  scan: { path: ScanPath; stepPx: number; marks: number; driftPx: number; transformHash: string };
+  image: { name: string; width: number; height: number; dataUrl: string; hash: string; };
+  locks: { pixelSpace: "1:1"; noNormalize: true; noSemanticOverride: true; };
+  scan: { path: ScanPath; stepPx: number; marks: number; driftPx: number; transformHash: string; };
   nodes: UINode[];
   diff?: { last?: DiffMetrics; history: DiffMetrics[] };
 }
