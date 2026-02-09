@@ -20,33 +20,13 @@
       }
     ],
     "paths": {
+      "@whisper/soul/*": ["whisper-soul/*"],
+      "@whisper/vision/*": ["whisper-vision/*"],
+      "@whisper/studio/*": ["whisper-studio/*"],
+      "@whisper/core/*": ["whisper-core/*"],
       "@/*": ["./*"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    ".next/dev/dev/types/**/*.ts",
-    "engine/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "blueprint-factory",
-    "image-to-ui-monorepo",
-    "exporters",
-    "gate",
-    "hints",
-    "lock",
-    "module",
-    "nodes",
-    "overlay",
-    "pipeline",
-    "scan",
-    "snapshots",
-    "uploads",
-    "verify"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", "blueprint-factory", "uploads"]
 }

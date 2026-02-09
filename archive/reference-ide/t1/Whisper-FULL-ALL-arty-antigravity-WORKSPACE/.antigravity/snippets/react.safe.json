@@ -1,0 +1,15 @@
+{
+  "safe_array_render": {
+    "prefix": "w:safemap",
+    "body": [
+      "{Array.isArray(list) && list.length > 0 ? (",
+      "  list.map((item) => (",
+      "    <div key={item?.id ?? String(item?.key ?? crypto.randomUUID())}>$0</div>",
+      "  ))",
+      ") : (",
+      "  <div className=\"text-sm opacity-70\">No data</div>",
+      ")}"
+    ],
+    "description": "Safe map with empty state"
+  }
+}

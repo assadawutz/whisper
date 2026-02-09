@@ -1,0 +1,10 @@
+{
+  "name": "@whisper/ui",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node src/dev-copy.mjs",
+    "build": "node src/dev-copy.mjs"
+  }
+}

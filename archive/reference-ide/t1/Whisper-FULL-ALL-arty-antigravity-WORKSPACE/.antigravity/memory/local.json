@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "user": {
+    "name": "arty",
+    "role": "senior mobile+website developer"
+  },
+  "preferences": {
+    "tailwind": "v4-only",
+    "breakpoints": [
+      "sm",
+      "md",
+      "lg"
+    ],
+    "mode": "full"
+  },
+  "learned": {
+    "goodPatterns": [],
+    "badPatterns": [],
+    "notes": []
+  }
+}

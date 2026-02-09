@@ -1,7 +1,0 @@
-{
-  "intents": [
-    { "id": "centered-stack", "traits": { "flow": "vertical", "align": "center" } },
-    { "id": "card-list-3", "traits": { "flow": "grid", "columns": 3 } },
-    { "id": "media-left", "traits": { "flow": "horizontal", "media": "left" } }
-  ]
-}

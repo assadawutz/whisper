@@ -1,0 +1,7 @@
+{
+  "name":"@whisper/engine","private":true,"version":"1.0.0","type":"module",
+  "main":"dist/index.js","types":"dist/index.d.ts",
+  "scripts":{"dev":"tsc -w -p tsconfig.json","build":"tsc -p tsconfig.json","typecheck":"tsc -p tsconfig.json --noEmit"},
+  "dependencies":{"@whisper/shared":"workspace:*","js-yaml":"^4.1.0","zod":"^3.23.8"},
+  "devDependencies":{"typescript":"^5.6.3"}
+}

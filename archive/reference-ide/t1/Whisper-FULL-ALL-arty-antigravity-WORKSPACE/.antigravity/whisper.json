@@ -1,0 +1,39 @@
+{
+  "whisper": {
+    "mode": "full",
+    "ghost": true,
+    "autocomplete": true,
+    "inline": true,
+    "hints": true
+  },
+  "daemon": {
+    "port": 8787,
+    "baseUrl": "http://localhost:8787"
+  },
+  "rules": {
+    "framework": "nextjs",
+    "router": "app-router-only",
+    "styling": "tailwind-v4-only",
+    "breakpoints": [
+      "sm",
+      "md",
+      "lg"
+    ],
+    "layoutBaseline": [
+      "container mx-auto w-full px-4",
+      "grid grid-cols-12"
+    ]
+  },
+  "limits": {
+    "prefixMax": 8192,
+    "suffixMax": 2048,
+    "maxItems": 12
+  },
+  "paths": {
+    "promptsDir": ".antigravity/prompts",
+    "snippetsDir": ".antigravity/snippets",
+    "rulesDir": ".antigravity/rules",
+    "memoryFile": ".antigravity/memory/local.json",
+    "logFile": ".antigravity/logs/whisper.log"
+  }
+}

@@ -1,0 +1,449 @@
+#!/usr/bin/env node
+/* oneclick-all.mjs
+   WHISPERx OneClick FULL:
+   - sanity checks
+   - install deps (auto PM by lockfile)
+   - build (script build fallback tsc)
+   - package VSIX (vsce via npx/local/global fallback)
+   - create FULL ZIP (zip / powershell / 7z / tar.gz fallback)
+   - robust: bounded retries, no infinite loops, clear remediation
+   - no backticks in output
+
+   Usage:
+   - node oneclick-all.mjs
+*/
+
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+import process from "node:process";
+import { execSync } from "node:child_process";
+
+const PROJECT_NAME = "WHISPERx";
+const VERSION = "1.0.0";
+
+// Set desired artifact names here
+const VSIX_OUT = PROJECT_NAME + "-" + VERSION + ".vsix";
+const ZIP_OUT = PROJECT_NAME + "-full.zip";
+const TGZ_OUT = PROJECT_NAME + "-full.tar.gz";
+
+// Archive excludes (common large/derived dirs)
+const EXCLUDE_DIRS = [
+  "node_modules",
+  ".git",
+  ".next",
+  "out",
+  "dist",
+  "build",
+  "coverage",
+  ".turbo",
+  ".vercel",
+  ".cache",
+  ".vscode-test",
+  ".DS_Store"
+];
+
+// Retry policy (bounded)
+const RETRY_INSTALL_ATTEMPTS = 2;
+const RETRY_BUILD_ATTEMPTS = 1;
+const RETRY_PACKAGE_ATTEMPTS = 1;
+const RETRY_DELAY_MS = 800;
+
+// ----------------- tiny logger -----------------
+function log(msg) { process.stdout.write("[oneclick] " + msg + "\n"); }
+function warn(msg) { process.stdout.write("[oneclick][warn] " + msg + "\n"); }
+function err(msg) { process.stderr.write("[oneclick][error] " + msg + "\n"); }
+
+function exitFail(msg, remediation) {
+  err(msg);
+  if (Array.isArray(remediation) && remediation.length) {
+    warn("Remediation:");
+    for (const line of remediation) warn("- " + line);
+  }
+  process.exit(1);
+}
+
+// ----------------- helpers -----------------
+function exists(p) {
+  try { return fs.existsSync(p); } catch { return false; }
+}
+
+function readJsonSafe(p) {
+  try {
+    const raw = fs.readFileSync(p, "utf8");
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== "object") return null;
+    return obj;
+  } catch {
+    return null;
+  }
+}
+
+function removeFileSafe(filename) {
+  const p = path.join(process.cwd(), filename);
+  if (!exists(p)) return;
+  try {
+    fs.unlinkSync(p);
+    log("Removed old artifact: " + filename);
+  } catch {
+    warn("Could not remove: " + filename + " (will attempt overwrite)");
+  }
+}
+
+function run(cmd, opts) {
+  log("$ " + cmd);
+  try {
+    execSync(cmd, { stdio: "inherit", ...opts });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e };
+  }
+}
+
+function sleepMs(ms) {
+  const t = Math.max(0, Number.isFinite(ms) ? ms : 0);
+  if (t <= 0) return;
+  try {
+    if (process.platform === "win32") {
+      execSync("powershell -NoProfile -Command Start-Sleep -Milliseconds " + t, { stdio: "ignore" });
+    } else {
+      execSync("sh -lc \"sleep " + (t / 1000) + "\"", { stdio: "ignore" });
+    }
+  } catch {}
+}
+
+function runRetry(cmd, attempts, delayMs, remediationOnFail) {
+  const max = Math.max(1, Number.isFinite(attempts) ? attempts : 1);
+  for (let i = 1; i <= max; i++) {
+    const r = run(cmd);
+    if (r.ok) return true;
+    warn("Attempt " + i + " failed: " + cmd);
+    if (i < max) sleepMs(delayMs);
+  }
+  if (Array.isArray(remediationOnFail) && remediationOnFail.length) {
+    warn("Remediation:");
+    for (const line of remediationOnFail) warn("- " + line);
+  }
+  return false;
+}
+
+// ----------------- sanity checks -----------------
+function ensureNode18Plus() {
+  const v = String((process.versions && process.versions.node) || "");
+  const major = parseInt(v.split(".")[0] || "0", 10);
+  if (!Number.isFinite(major) || major < 18) {
+    exitFail(
+      "Node.js 18+ required. Detected: " + (v || "unknown"),
+      ["Install Node.js 18/20+, then rerun: node oneclick-all.mjs"]
+    );
+  }
+}
+
+function ensureRepoRoot() {
+  const pkgPath = path.join(process.cwd(), "package.json");
+  if (!exists(pkgPath)) {
+    exitFail(
+      "package.json not found. Run this in the WHISPERx repo root.",
+      ["cd into your repo root where package.json exists", "Rerun: node oneclick-all.mjs"]
+    );
+  }
+  const pkg = readJsonSafe(pkgPath);
+  if (!pkg) {
+    exitFail(
+      "package.json is not valid JSON.",
+      ["Fix JSON syntax errors in package.json", "Rerun: node oneclick-all.mjs"]
+    );
+  }
+  return pkg;
+}
+
+function remindRecommendedScripts(pkg) {
+  const s = (pkg && pkg.scripts && typeof pkg.scripts === "object") ? pkg.scripts : {};
+  if (!s.build) warn("Missing scripts.build in package.json. Build fallback will try tsc.");
+}
+
+// ----------------- package manager picking -----------------
+function pickPM() {
+  const cwd = process.cwd();
+  const hasPnpm = exists(path.join(cwd, "pnpm-lock.yaml"));
+  const hasYarn = exists(path.join(cwd, "yarn.lock"));
+  const hasNpmLock = exists(path.join(cwd, "package-lock.json")) || exists(path.join(cwd, "npm-shrinkwrap.json"));
+
+  if (hasPnpm) return { name: "pnpm", install: "pnpm i", run: "pnpm run" };
+  if (hasYarn) return { name: "yarn", install: "yarn install", run: "yarn" };
+  if (hasNpmLock) return { name: "npm", install: "npm ci", run: "npm run" };
+  return { name: "npm", install: "npm install", run: "npm run" };
+}
+
+// ----------------- VSCE resolution -----------------
+function resolveVSCE() {
+  // Try npx first (no global required)
+  if (run("npx --yes @vscode/vsce --version").ok) return { cmd: "npx --yes @vscode/vsce", mode: "npx" };
+
+  // Try local bin
+  const local = path.join(process.cwd(), "node_modules", ".bin", process.platform === "win32" ? "vsce.cmd" : "vsce");
+  if (exists(local) && run("\"" + local + "\" --version").ok) return { cmd: "\"" + local + "\"", mode: "local" };
+
+  // Try global vsce
+  if (run("vsce --version").ok) return { cmd: "vsce", mode: "global" };
+
+  exitFail(
+    "vsce not available.",
+    [
+      "Install dev dep: npm i -D @vscode/vsce",
+      "Or ensure npx can download packages (network/proxy)",
+      "Then rerun: node oneclick-all.mjs"
+    ]
+  );
+}
+
+// ----------------- install/build/package -----------------
+function installDeps(pm) {
+  log("Package manager: " + pm.name);
+  const ok = runRetry(
+    pm.install,
+    RETRY_INSTALL_ATTEMPTS,
+    RETRY_DELAY_MS,
+    [
+      "If install keeps failing: delete node_modules and retry",
+      "If npm: try npm cache verify",
+      "If registry/proxy issues: fix network then rerun"
+    ]
+  );
+  if (!ok) exitFail("Dependency install failed.", ["Fix errors above then rerun."]);
+}
+
+function buildExt(pm, pkg) {
+  const cmds = [];
+
+  const hasBuildScript = !!(pkg && pkg.scripts && typeof pkg.scripts.build === "string" && pkg.scripts.build.trim().length > 0);
+  if (hasBuildScript) cmds.push(pm.run + " build");
+
+  // fallback
+  cmds.push("npm run build");
+
+  // last fallback: tsc if tsconfig exists
+  if (exists(path.join(process.cwd(), "tsconfig.json"))) cmds.push("npx --yes tsc -p tsconfig.json");
+
+  let built = false;
+  for (const cmd of cmds) {
+    const ok = runRetry(cmd, RETRY_BUILD_ATTEMPTS, RETRY_DELAY_MS, []);
+    if (ok) { built = true; break; }
+  }
+
+  if (!built) {
+    exitFail(
+      "Build failed.",
+      [
+        "Ensure scripts.build exists and succeeds locally",
+        "Resolve TypeScript errors",
+        "Try running: npm run build",
+        "Rerun: node oneclick-all.mjs"
+      ]
+    );
+  }
+}
+
+function packageVSIX(vsceCmd) {
+  removeFileSafe(VSIX_OUT);
+
+  const cmd = vsceCmd + " package -o " + VSIX_OUT;
+  const ok = runRetry(
+    cmd,
+    RETRY_PACKAGE_ATTEMPTS,
+    RETRY_DELAY_MS,
+    [
+      "Check package.json: name, version, publisher, engines.vscode",
+      "Ensure README.md exists",
+      "If vsce requests LICENSE, add LICENSE file"
+    ]
+  );
+
+  if (!ok) exitFail("VSIX packaging failed.", ["Fix packaging errors above then rerun."]);
+  if (!exists(path.join(process.cwd(), VSIX_OUT))) {
+    exitFail("Packaging finished but VSIX not found: " + VSIX_OUT, ["Rerun and review logs."]);
+  }
+  log("VSIX created: " + VSIX_OUT);
+}
+
+// ----------------- archiving -----------------
+function detectArchiveTool() {
+  if (process.platform !== "win32") {
+    if (run("zip -v").ok) return { type: "zip" };
+    if (run("7z").ok) return { type: "7z" };
+    if (run("tar --version").ok) return { type: "tar" };
+    return { type: "none" };
+  } else {
+    if (run("powershell -NoProfile -Command \"$PSVersionTable.PSVersion\"").ok) return { type: "powershell" };
+    if (run("7z").ok) return { type: "7z" };
+    if (run("tar --version").ok) return { type: "tar" };
+    return { type: "none" };
+  }
+}
+
+function zipExcludeArgs() {
+  // zip exclude patterns
+  const parts = [];
+  for (const d of EXCLUDE_DIRS) {
+    parts.push("-x");
+    parts.push(d + "/\\*");
+    parts.push("-x");
+    parts.push(d + "\\*");
+  }
+  return parts.join(" ");
+}
+
+function createArchive() {
+  removeFileSafe(ZIP_OUT);
+  removeFileSafe(TGZ_OUT);
+
+  const tool = detectArchiveTool();
+
+  // Ensure VSIX exists so it gets included
+  const vsixPath = path.join(process.cwd(), VSIX_OUT);
+  if (!exists(vsixPath)) exitFail("VSIX missing before archive step.", ["Run packaging step again."]);
+
+  if (tool.type === "zip") {
+    const cmd = "zip -r " + ZIP_OUT + " . " + zipExcludeArgs();
+    const r = run(cmd);
+    if (r.ok && exists(path.join(process.cwd(), ZIP_OUT))) {
+      log("FULL ZIP created: " + ZIP_OUT);
+      return;
+    }
+    warn("zip failed, trying fallbacks...");
+  }
+
+  if (tool.type === "powershell") {
+    // Compress-Archive cannot easily exclude; stage filtered copy
+    const staging = path.join(os.tmpdir(), PROJECT_NAME + "-staging-" + Date.now());
+    try { fs.mkdirSync(staging, { recursive: true }); } catch {}
+
+    const cwd = process.cwd();
+
+    function shouldSkip(rel) {
+      const p = rel.replace(/\\/g, "/");
+      for (const d of EXCLUDE_DIRS) {
+        if (p === d || p.startsWith(d + "/")) return true;
+      }
+      return false;
+    }
+
+    function copyFiltered(srcDir, dstDir, relBase) {
+      let ents = [];
+      try { ents = fs.readdirSync(srcDir, { withFileTypes: true }); } catch { return; }
+      for (const ent of ents) {
+        const rel = relBase ? (relBase + "/" + ent.name) : ent.name;
+        if (shouldSkip(rel)) continue;
+
+        const src = path.join(srcDir, ent.name);
+        const dst = path.join(dstDir, ent.name);
+
+        if (ent.isDirectory()) {
+          try { fs.mkdirSync(dst, { recursive: true }); } catch {}
+          copyFiltered(src, dst, rel);
+        } else if (ent.isFile()) {
+          try { fs.copyFileSync(src, dst); } catch {}
+        }
+      }
+    }
+
+    log("Staging filtered copy for zip (Windows)...");
+    copyFiltered(cwd, staging, "");
+
+    const psCmd =
+      "powershell -NoProfile -Command " +
+      "\"Compress-Archive -Path '" + staging.replace(/'/g, "''") + "\\*' -DestinationPath '" +
+      path.join(cwd, ZIP_OUT).replace(/'/g, "''") + "' -Force\"";
+
+    const r = run(psCmd);
+    try { fs.rmSync(staging, { recursive: true, force: true }); } catch {}
+
+    if (r.ok && exists(path.join(cwd, ZIP_OUT))) {
+      log("FULL ZIP created: " + ZIP_OUT);
+      return;
+    }
+    warn("PowerShell archive failed, trying fallbacks...");
+  }
+
+  if (tool.type === "7z") {
+    // 7z a -tzip out.zip . -xr!node_modules -xr!.git ...
+    const excl = EXCLUDE_DIRS.map(d => "-xr!" + d).join(" ");
+    const cmd = "7z a -tzip " + ZIP_OUT + " . " + excl;
+    const r = run(cmd);
+    if (r.ok && exists(path.join(process.cwd(), ZIP_OUT))) {
+      log("FULL ZIP created: " + ZIP_OUT);
+      return;
+    }
+    warn("7z failed, trying tar fallback...");
+  }
+
+  if (tool.type === "tar") {
+    const excludeFlags = EXCLUDE_DIRS.map(d => "--exclude=" + d).join(" ");
+    const cmd = "tar -czf " + TGZ_OUT + " " + excludeFlags + " .";
+    const r = run(cmd);
+    if (r.ok && exists(path.join(process.cwd(), TGZ_OUT))) {
+      warn("zip not available; created tar.gz instead: " + TGZ_OUT);
+      warn("Install zip or 7z to create .zip if required.");
+      return;
+    }
+  }
+
+  exitFail(
+    "Could not create archive (zip/powershell/7z/tar all unavailable or failed).",
+    [
+      "macOS/Linux: install zip (brew install zip or apt-get install zip)",
+      "Windows: install 7-Zip or ensure PowerShell works",
+      "Rerun: node oneclick-all.mjs"
+    ]
+  );
+}
+
+// ----------------- optional: VS Code CLI detection -----------------
+function detectCodeCLI() {
+  return run("code --version").ok;
+}
+
+// ----------------- final report -----------------
+function finalReport() {
+  const vsixP = path.join(process.cwd(), VSIX_OUT);
+  const zipP = path.join(process.cwd(), ZIP_OUT);
+  const tgzP = path.join(process.cwd(), TGZ_OUT);
+
+  if (!exists(vsixP)) exitFail("Missing VSIX output: " + VSIX_OUT, ["Rerun and inspect packaging logs."]);
+
+  log("DONE.");
+  log("Artifacts:");
+  log("- " + VSIX_OUT);
+
+  if (exists(zipP)) log("- " + ZIP_OUT);
+  if (exists(tgzP)) log("- " + TGZ_OUT);
+
+  log("Install VSIX:");
+  log("- UI: VS Code Extensions -> Install from VSIX");
+  log("- CLI: code --install-extension " + VSIX_OUT);
+
+  if (!detectCodeCLI()) warn("VS Code CLI (code) not detected. UI install is fine.");
+}
+
+// ----------------- main -----------------
+function main() {
+  ensureNode18Plus();
+  const pkg = ensureRepoRoot();
+  remindRecommendedScripts(pkg);
+
+  removeFileSafe(VSIX_OUT);
+  removeFileSafe(ZIP_OUT);
+  removeFileSafe(TGZ_OUT);
+
+  const pm = pickPM();
+  installDeps(pm);
+
+  const vsce = resolveVSCE();
+  buildExt(pm, pkg);
+  packageVSIX(vsce.cmd);
+
+  createArchive();
+  finalReport();
+}
+
+main();
